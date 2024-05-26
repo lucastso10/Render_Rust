@@ -5,18 +5,22 @@
     clippy::unnecessary_wraps
 )]
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use winit::dpi::LogicalSize;
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::EventLoop;
 use winit::window::{Window, WindowBuilder};
+use log::*;
+use vulkanalia::loader::{LibloadingLoader, LIBRARY};
+use vulkanalia::window as vk_window;
+use vulkanalia::prelude::v1_0::*;
 
 fn main() -> Result<()> {
     
     // Window
     let event_loop = EventLoop::new()?;
     let window = WindowBuilder::new()
-        .with_title("Vulkan Tutorial (Rust)")
+        .with_title("Rust Render")
         .with_inner_size(LogicalSize::new(1024, 768))
         .build(&event_loop)?;
 
@@ -44,14 +48,41 @@ fn main() -> Result<()> {
     Ok(())
 }
 
+unsafe fn create_instance(window: &Window, entry: &Entry) -> Result<Instance> {
+
+    let application_info = vk::ApplicationInfo::builder()
+        .application_name(b"Rust Render\0")
+        .application_version(vk::make_version(1, 0, 0))
+        .engine_name(b"No Engine\0")
+        .engine_version(vk::make_version(1, 0, 0))
+        .api_version(vk::make_version(1, 0, 0));
+
+    let extensions = vk_window::get_required_instance_extensions(window)
+        .iter()
+        .map(|e| e.as_ptr())
+        .collect::<Vec<_>>();
+
+    let info = vk::InstanceCreateInfo::builder()
+        .application_info(&application_info)
+        .enabled_extension_names(&extensions);
+    
+    Ok(entry.create_instance(&info, None)?)
+}
+
 /// Our Vulkan app.
 #[derive(Clone, Debug)]
-struct App {}
+struct App {
+    entry: Entry,
+    instance: Instance,
+}
 
 impl App {
     /// Creates our Vulkan app.
     unsafe fn create(window: &Window) -> Result<Self> {
-        Ok(Self {})
+        let loader = LibloadingLoader::new(LIBRARY)?;
+        let entry = Entry::new(loader).map_err(|b| anyhow!("{}", b))?;
+        let instance = create_instance(window, &entry)?;
+        Ok(Self { entry, instance })
     }
 
     /// Renders a frame for our Vulkan app.
@@ -60,7 +91,9 @@ impl App {
     }
 
     /// Destroys our Vulkan app.
-    unsafe fn destroy(&mut self) {}
+    unsafe fn destroy(&mut self) {
+        self.instance.destroy_instance(None);
+    }
 }
 
 /// The Vulkan handles and associated properties used by our Vulkan app.

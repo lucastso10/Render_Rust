@@ -2,9 +2,16 @@
 Lucas Teixeira Soares RA:1038847
 Mateus Fernandes Castanharo RA:10389418
 
-Referencias: 
+Referencias:
+https://vulkan-tutorial.com/
 https://kylemayes.github.io/vulkanalia/introduction.html
 https://github.com/KyleMayes/vulkanalia/tree/master
+https://github.com/adrien-ben/vulkan-tutorial-rs/tree/master
+
+
+NECESSÁRIO INSTALAR O VULKAN SDK PARA EXECUTAR ESSE PROGRAMA
+https://vulkan.lunarg.com/
+
 */
 
 #![allow(
